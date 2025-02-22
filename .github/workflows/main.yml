@@ -1,0 +1,25 @@
+name: Send SNS Trends to Telegram
+
+on: push: branches: - main  # main 브랜치에 커밋될 때 실행 schedule: - cron: "0 0 * * *"  # UTC 00:00 = KST 09:00 (매일 오전 9시 실행) workflow_dispatch:  # 수동 실행 가능
+
+jobs: send_trends: runs-on: ubuntu-latest
+
+steps:
+  - name: 저장소 체크아웃
+    uses: actions/checkout@v4
+
+  - name: Python 설정
+    uses: actions/setup-python@v4
+    with:
+      python-version: "3.9"
+
+  - name: 의존성 설치
+    run: |
+      pip install -r requirements.txt
+
+  - name: 환경 변수 설정 및 실행
+    env:
+      TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+      CHAT_ID: ${{ secrets.CHAT_ID }}
+    run: python trend_bot.py
+
