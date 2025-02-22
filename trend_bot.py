@@ -54,15 +54,23 @@ def send_trend_message():
         bot = telegram.Bot(token=TELEGRAM_TOKEN)
         print("텔레그램 봇 초기화 성공")
         
+        # 메시지 초기화
         message = "\U0001F4E2 *오늘의 SNS 트렌드*\n\n"
+        print(f"초기 메시지: {message}")
         
         message += "\U0001F525 *유튜브 인기 영상*\n"
+        print(f"유튜브 트렌드 제목 추가: {message}")
         for title, link, thumbnail in fetch_youtube_trends():
             message += f"- [{title}]({link})\n"
-        
+            print(f"유튜브 영상 추가: {title}, 링크: {link}")
+
         message += "\n\U0001F426 *트위터 실시간 트렌드*\n"
+        print(f"트위터 트렌드 제목 추가: {message}")
         for title, link in fetch_twitter_trends():
             message += f"- [{title}]({link})\n"
+            print(f"트위터 트렌드 추가: {title}, 링크: {link}")
+        
+        print(f"최종 메시지: {message}")
         
         bot.send_message(chat_id=CHAT_ID, text=message, parse_mode="Markdown", disable_web_page_preview=True)
         print("메시지 텔레그램 전송 성공")
