@@ -14,6 +14,7 @@ def fetch_youtube_trends():
         url = "https://www.youtube.com/feed/trending"
         headers = {"User-Agent": "Mozilla/5.0"}
         response = requests.get(url, headers=headers)
+        print(f"유튜브 응답 코드: {response.status_code}")  # 응답 상태 확인
         response.raise_for_status()  # HTTP 오류 발생 시 예외 처리
         soup = BeautifulSoup(response.text, "html.parser")
         
@@ -34,6 +35,7 @@ def fetch_twitter_trends():
     try:
         url = "https://trends24.in/"
         response = requests.get(url)
+        print(f"트위터 응답 코드: {response.status_code}")  # 응답 상태 확인
         response.raise_for_status()  # HTTP 오류 발생 시 예외 처리
         soup = BeautifulSoup(response.text, "html.parser")
         
@@ -72,9 +74,11 @@ def send_trend_message():
         
         print(f"최종 메시지: {message}")
         
+        # 텔레그램 메시지 전송
         bot.send_message(chat_id=CHAT_ID, text=message, parse_mode="Markdown", disable_web_page_preview=True)
         print("메시지 텔레그램 전송 성공")
         
+        # 유튜브 썸네일 전송
         for title, link, thumbnail in fetch_youtube_trends():
             bot.send_photo(chat_id=CHAT_ID, photo=thumbnail, caption=f"[{title}]({link})", parse_mode="Markdown")
         print("유튜브 썸네일 텔레그램 전송 성공")
