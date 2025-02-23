@@ -27,7 +27,7 @@ async def fetch_youtube_trends():
         part="snippet,contentDetails,statistics",
         chart="mostPopular",
         regionCode="KR",  # 한국(KR)으로 설정
-        maxResults=3  # 상위 3개만 가져옴
+        maxResults=1  # 상위 1개만 가져옴
     )
     response = request.execute()
     
@@ -36,7 +36,6 @@ async def fetch_youtube_trends():
         title = item["snippet"]["title"]
         link = f"https://www.youtube.com/watch?v={item['id']}"
         thumbnail = item["snippet"]["thumbnails"]["high"]["url"]
-        # 여기서 릴스를 필터링하려면 더 세부적인 필터링이 필요하지만, 일단 인기 영상만 가져옵니다.
         videos.append((title, link, thumbnail))
     
     return videos
@@ -54,7 +53,7 @@ async def fetch_twitter_trends():
         trends = api.get_place_trends(id=1)  # 1은 전세계 트렌드 (Worldwide)
         
         trends_data = []
-        for trend in trends[0]["trends"][:5]:  # 상위 5개 트렌드
+        for trend in trends[0]["trends"][:1]:  # 상위 1개 트렌드
             title = trend["name"]
             link = f"https://twitter.com/search?q={title.replace(' ', '%20')}&src=trend_click"
             trends_data.append((title, link))
@@ -70,17 +69,17 @@ async def send_trend_message():
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
     
     # 메시지 초기화
-    message = "\U0001F4E2 *오늘의 SNS 트렌드*\n\n"
+    message = "\U0001F4A5 *🔥 지금 핫이슈 🔥*\n\n"  # 타이틀을 '지금 핫이슈'로 변경하고 이모티콘 추가
     
     youtube_trends = await fetch_youtube_trends()  # 비동기 함수 호출
     if youtube_trends:
-        message += "\U0001F525 *유튜브 인기 영상*\n"
+        message += "\U0001F525 *🎥 유튜브 인기 영상*\n"  # 유튜브 이모티콘 추가
         for title, link, thumbnail in youtube_trends:
             message += f"- [{title}]({link})\n"
     
     twitter_trends = await fetch_twitter_trends()  # 비동기 함수 호출
     if twitter_trends:
-        message += "\n\U0001F426 *트위터 실시간 트렌드*\n"
+        message += "\n\U0001F426 *🐦 트위터 실시간 트렌드*\n"  # 트위터 이모티콘 추가
         for title, link in twitter_trends:
             message += f"- [{title}]({link})\n"
     
