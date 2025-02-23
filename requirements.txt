@@ -4,3 +4,4 @@ python-dotenv
 python-telegram-bot
 schedule
 google-api-python-client
+tweepy
