@@ -91,6 +91,7 @@ async def send_trend_message():
     # 유튜브 썸네일 전송
     for title, link, thumbnail in youtube_trends:
         await bot.send_photo(chat_id=CHAT_ID, photo=thumbnail, caption=f"[{title}]({link})", parse_mode="Markdown")
+        await bot.send_photo(chat_id=CHAT_ID_GROUP, photo=thumbnail, caption=f"[{title}]({link})", parse_mode="Markdown")
 
 # 메인 실행 함수
 if __name__ == "__main__":
