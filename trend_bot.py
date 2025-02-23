@@ -26,8 +26,8 @@ async def fetch_youtube_trends():
     request = youtube.videos().list(
         part="snippet,contentDetails,statistics",
         chart="mostPopular",
-        regionCode="US",  # 지역 설정 (예: US, KR 등)
-        maxResults=5
+        regionCode="KR",  # 한국(KR)으로 설정
+        maxResults=3  # 상위 3개만 가져옴
     )
     response = request.execute()
     
@@ -36,6 +36,7 @@ async def fetch_youtube_trends():
         title = item["snippet"]["title"]
         link = f"https://www.youtube.com/watch?v={item['id']}"
         thumbnail = item["snippet"]["thumbnails"]["high"]["url"]
+        # 여기서 릴스를 필터링하려면 더 세부적인 필터링이 필요하지만, 일단 인기 영상만 가져옵니다.
         videos.append((title, link, thumbnail))
     
     return videos
