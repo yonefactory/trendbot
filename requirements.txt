@@ -3,3 +3,4 @@ beautifulsoup4
 python-dotenv
 python-telegram-bot
 schedule
+google-api-python-client
