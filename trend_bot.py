@@ -42,22 +42,27 @@ async def fetch_youtube_trends():
 
 # Twitter API로 트렌드 가져오기
 async def fetch_twitter_trends():
-    auth = tweepy.OAuth1UserHandler(
-        TWITTER_API_KEY, TWITTER_API_SECRET_KEY,
-        TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_TOKEN_SECRET
-    )
-    api = tweepy.API(auth)
+    try:
+        auth = tweepy.OAuth1UserHandler(
+            TWITTER_API_KEY, TWITTER_API_SECRET_KEY,
+            TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_TOKEN_SECRET
+        )
+        api = tweepy.API(auth)
+        
+        # 트렌드 가져오기 (WOEID: Worldwide, 지역별 트렌드를 가져올 수 있음)
+        trends = api.get_place_trends(id=1)  # 1은 전세계 트렌드 (Worldwide)
+        
+        trends_data = []
+        for trend in trends[0]["trends"][:5]:  # 상위 5개 트렌드
+            title = trend["name"]
+            link = f"https://twitter.com/search?q={title.replace(' ', '%20')}&src=trend_click"
+            trends_data.append((title, link))
+        
+        return trends_data
     
-    # 트렌드 가져오기 (WOEID: Worldwide, 지역별 트렌드를 가져올 수 있음)
-    trends = api.get_place_trends(id=1)  # 1은 전세계 트렌드 (Worldwide)
-    
-    trends_data = []
-    for trend in trends[0]["trends"][:5]:  # 상위 5개 트렌드
-        title = trend["name"]
-        link = f"https://twitter.com/search?q={title.replace(' ', '%20')}&src=trend_click"
-        trends_data.append((title, link))
-    
-    return trends_data
+    except Exception as e:
+        print(f"트위터 트렌드 가져오기 중 오류 발생: {e}")
+        return []  # 오류 발생 시 빈 리스트 반환
 
 # 텔레그램 메시지 보내기
 async def send_trend_message():
