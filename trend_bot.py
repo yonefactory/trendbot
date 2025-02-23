@@ -17,6 +17,7 @@ TWITTER_ACCESS_TOKEN = os.getenv("TWITTER_ACCESS_TOKEN")
 TWITTER_ACCESS_TOKEN_SECRET = os.getenv("TWITTER_ACCESS_TOKEN_SECRET")
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
+CHAT_ID_GROUP = os.getenv("CHAT_ID_GROUP")
 
 # YouTube Data API로 트렌드 가져오기
 async def fetch_youtube_trends():
@@ -85,6 +86,7 @@ async def send_trend_message():
     
     # 텔레그램 메시지 전송
     await bot.send_message(chat_id=CHAT_ID, text=message, parse_mode="Markdown", disable_web_page_preview=True)
+    await bot.send_message(chat_id=CHAT_ID_GROUP, text=message, parse_mode="Markdown", disable_web_page_preview=True)
     
     # 유튜브 썸네일 전송
     for title, link, thumbnail in youtube_trends:
