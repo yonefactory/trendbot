@@ -34,4 +34,5 @@ jobs:
           TWITTER_ACCESS_TOKEN_SECRET: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
+          CHAT_ID_GROUP: ${{ secrets.CHAT_ID_GROUP }}
         run: python trend_bot.py
