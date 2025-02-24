@@ -19,10 +19,9 @@ TWITTER_ACCESS_TOKEN_SECRET = os.getenv("TWITTER_ACCESS_TOKEN_SECRET")
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 CHAT_ID_GROUP = os.getenv("CHAT_ID_GROUP")
-TEST_MODE = os.getenv("TEST_MODE", "True").lower() == "true"  # True면 테스트 모드
+TEST_MODE = os.getenv("TEST_MODE", "True").lower() == "true"  # 기본값 True
 
 YOUTUBE_DATA_FILE = "youtube_trends.json"
-CATEGORY_IDS = [24, 10, 17, 25, 20]  # 엔터테인먼트, 음악, 스포츠, 뉴스/정치, 게임
 
 # 기존 저장된 유튜브 영상 목록 불러오기
 def load_previous_videos():
@@ -36,17 +35,17 @@ def save_videos(videos):
     with open(YOUTUBE_DATA_FILE, "w", encoding="utf-8") as file:
         json.dump(videos, file, ensure_ascii=False, indent=4)
 
-# 1️⃣ 최근 24시간 내 업로드된 인기 영상 가져오기
+# 1️⃣ 최근 24시간 내 업로드된 인기 영상 (한국 한정, 3개)
 async def fetch_youtube_trends():
     youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
     published_after = (datetime.datetime.utcnow() - datetime.timedelta(days=1)).isoformat() + "Z"
 
     request = youtube.search().list(
         part="snippet",
-        maxResults=10,
+        maxResults=3,  # 3개로 제한
         order="viewCount",
         publishedAfter=published_after,
-        regionCode="KR",
+        regionCode="KR",  # 한국 한정
         type="video"
     )
     response = request.execute()
@@ -63,32 +62,10 @@ async def fetch_youtube_trends():
         if video_id not in previous_videos:
             videos.append((title, link, thumbnail))
 
-    save_videos([video[1].split("v=")[-1] for video in videos[:5]])
-    return videos[:5]
-
-# 2️⃣ 카테고리별 인기 영상 가져오기
-async def fetch_youtube_trends_by_category():
-    youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
-    videos = []
-
-    for category_id in CATEGORY_IDS:
-        request = youtube.videos().list(
-            part="snippet",
-            chart="mostPopular",
-            regionCode="KR",
-            videoCategoryId=str(category_id),
-            maxResults=1
-        )
-        response = request.execute()
-        for item in response.get("items", []):
-            title = item["snippet"]["title"]
-            link = f"https://www.youtube.com/watch?v={item['id']}"
-            thumbnail = item["snippet"]["thumbnails"]["high"]["url"]
-            videos.append((title, link, thumbnail))
-
+    save_videos([video[1].split("v=")[-1] for video in videos])
     return videos
 
-# 3️⃣ 트위터 트렌드 키워드를 이용해 유튜브 검색
+# 2️⃣ 트위터 트렌드 키워드를 이용해 유튜브 검색 (한국 영상만, 3개)
 def fetch_twitter_trends():
     try:
         auth = tweepy.OAuth1UserHandler(
@@ -97,10 +74,10 @@ def fetch_twitter_trends():
         )
         api = tweepy.API(auth)
         
-        trends = api.get_place_trends(id=1)  # 전 세계 트렌드
+        trends = api.get_place_trends(id=23424868)  # 한국(KR) 트렌드
         trends_data = [
             (trend["name"], f"https://twitter.com/search?q={trend['name'].replace(' ', '%20')}&src=trend_click")
-            for trend in trends[0]["trends"][:3]
+            for trend in trends[0]["trends"][:3]  # 상위 3개 트렌드
         ]
         return trends_data
     
@@ -120,14 +97,14 @@ async def fetch_youtube_trends_from_twitter():
     youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
     videos = []
 
-    for trend_title, _ in twitter_trends[:3]:
+    for trend_title, _ in twitter_trends[:3]:  # 3개로 제한
         request = youtube.search().list(
             part="snippet",
             q=trend_title,
             maxResults=1,
             order="viewCount",
             type="video",
-            regionCode="KR"
+            regionCode="KR"  # 한국 영상만 검색
         )
         response = request.execute()
 
@@ -140,18 +117,17 @@ async def fetch_youtube_trends_from_twitter():
 
     return videos
 
-# 4️⃣ 모든 트렌드 데이터 통합
+# 3️⃣ 모든 트렌드 데이터 통합
 async def fetch_all_youtube_trends():
-    youtube_trends, category_trends, twitter_trends = await asyncio.gather(
+    youtube_trends, twitter_trends = await asyncio.gather(
         fetch_youtube_trends(),
-        fetch_youtube_trends_by_category(),
         fetch_youtube_trends_from_twitter()
     )
 
-    all_trends = list({v[1]: v for v in youtube_trends + category_trends + twitter_trends}.values())[:5]
+    all_trends = list({v[1]: v for v in youtube_trends + twitter_trends}.values())[:3]  # 총 3개로 제한
     return all_trends
 
-# 5️⃣ 텔레그램 메시지 전송
+# 4️⃣ 텔레그램 메시지 전송
 async def send_trend_message():
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
     message = "🔥 *지금 핫이슈* 🔥\n\n"
@@ -181,6 +157,6 @@ async def send_trend_message():
         for chat_id in chat_ids:
             await bot.send_photo(chat_id=chat_id, photo=thumbnail, caption=f"[{title}]({link})", parse_mode="Markdown")
 
-# 6️⃣ 메인 실행
+# 5️⃣ 메인 실행
 if __name__ == "__main__":
     asyncio.run(send_trend_message())
