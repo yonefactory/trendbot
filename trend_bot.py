@@ -19,6 +19,7 @@ TWITTER_ACCESS_TOKEN_SECRET = os.getenv("TWITTER_ACCESS_TOKEN_SECRET")
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 CHAT_ID_GROUP = os.getenv("CHAT_ID_GROUP")
+TEST_MODE = os.getenv("TEST_MODE", "True").lower() == "true"  # True면 테스트 모드
 
 YOUTUBE_DATA_FILE = "youtube_trends.json"
 CATEGORY_IDS = [24, 10, 17, 25, 20]  # 엔터테인먼트, 음악, 스포츠, 뉴스/정치, 게임
@@ -168,16 +169,17 @@ async def send_trend_message():
         for title, link in twitter_trends:
             message += f"- [{title}]({link})\n"
 
-    await asyncio.gather(
-        bot.send_message(chat_id=CHAT_ID, text=message, parse_mode="Markdown", disable_web_page_preview=True),
-        bot.send_message(chat_id=CHAT_ID_GROUP, text=message, parse_mode="Markdown", disable_web_page_preview=True),
-    )
+    # 채팅 ID 목록 설정 (TEST_MODE가 True면 CHAT_ID_GROUP 제외)
+    chat_ids = [CHAT_ID] if TEST_MODE else [CHAT_ID, CHAT_ID_GROUP]
 
+    # 텍스트 메시지 전송
+    for chat_id in chat_ids:
+        await bot.send_message(chat_id=chat_id, text=message, parse_mode="Markdown", disable_web_page_preview=True)
+
+    # 이미지(썸네일) 전송
     for title, link, thumbnail in youtube_trends:
-        await asyncio.gather(
-            bot.send_photo(chat_id=CHAT_ID, photo=thumbnail, caption=f"[{title}]({link})", parse_mode="Markdown"),
-            bot.send_photo(chat_id=CHAT_ID_GROUP, photo=thumbnail, caption=f"[{title}]({link})", parse_mode="Markdown"),
-        )
+        for chat_id in chat_ids:
+            await bot.send_photo(chat_id=chat_id, photo=thumbnail, caption=f"[{title}]({link})", parse_mode="Markdown")
 
 # 6️⃣ 메인 실행
 if __name__ == "__main__":
