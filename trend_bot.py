@@ -13,7 +13,7 @@ load_dotenv()
 
 # API 키 및 텔레그램 설정
 YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
-TWITTER_BEARER_TOKEN = os.getenv("TWITTER_BEARER_TOKEN")
+TWITTER_BEARER_TOKEN = os.getenv("TWITTER_BEARER_TOKEN")  # Twitter API v2 인증용 추가
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 CHAT_ID_GROUP = os.getenv("CHAT_ID_GROUP")
@@ -22,7 +22,11 @@ TEST_MODE = os.getenv("TEST_MODE", "True").lower() == "true"  # 기본값 True
 YOUTUBE_DATA_FILE = "youtube_trends.json"
 
 # Twitter API v2 클라이언트 설정
-twitter_client = tweepy.Client(bearer_token=TWITTER_BEARER_TOKEN)
+try:
+    twitter_client = tweepy.Client(bearer_token=TWITTER_BEARER_TOKEN)
+    print("✅ Twitter API 인증 성공!")
+except Exception as e:
+    print(f"🚨 Twitter API 인증 실패: {e}")
 
 # Google Trends API 설정
 pytrends = TrendReq(hl="ko-KR", tz=540)
@@ -69,7 +73,7 @@ async def fetch_youtube_trends():
     save_videos([video[1].split("v=")[-1] for video in videos])
     return videos
 
-# 2️⃣ Twitter API v2를 사용한 트렌드 키워드 검색 (대체)
+# 2️⃣ Twitter API v2를 사용한 트렌드 키워드 검색
 async def fetch_twitter_trends():
     trending_keywords = []
     try:
@@ -82,7 +86,7 @@ async def fetch_twitter_trends():
     
     return trending_keywords
 
-# 3️⃣ Google Trends API로 한국 인기 검색어 가져오기 (대체 가능)
+# 3️⃣ Google Trends API로 한국 인기 검색어 가져오기
 async def fetch_google_trends():
     try:
         pytrends.build_payload(kw_list=["트렌드"], geo="KR")
