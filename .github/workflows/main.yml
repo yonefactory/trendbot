@@ -4,8 +4,8 @@ on:
   push:
     branches:
       - main  # main 브랜치에 커밋될 때 실행
-  schedule:
-    - cron: "0 * * * *"  # 매시각 UTC 00분 (KST 09분)
+  #schedule:
+  #  - cron: "0 * * * *"  # 매시각 UTC 00분 (KST 09분)
   workflow_dispatch:  # 수동 실행 가능 (수동 실행 버튼 지원)
 
 jobs:
